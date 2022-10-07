@@ -1,6 +1,10 @@
+from tokenizers import Tokenizer
+from tokenizers.models import BPE
 from typing import List, NamedTuple
 from collections import defaultdict
+from pathlib import Path
 import torch
+import json
 
 from .char_text_encoder import CharTextEncoder
 
@@ -59,3 +63,25 @@ class CTCCharTextEncoder(CharTextEncoder):
 
         hypos = [Hypothesis(hyp.text, prob) for hyp, prob in cur_hypos.items()]
         return sorted(hypos, key=lambda x: x.prob, reverse=True)
+
+
+class BPETextEncoder(CTCCharTextEncoder):
+    def __init__(self, alphabet: List[str] = None, file_tokenizer=''):
+        super().__init__(alphabet)
+        vocab = [self.EMPTY_TOK] + list(self.alphabet)
+        tokenizer = Tokenizer(BPE())
+        self.tokenizer = tokenizer.from_file('hw_asr/text_encoder/BPE_tokenizer_500.json')
+        self.tokenizer.add_tokens([' ', self.EMPTY_TOK])
+
+        self.ind2char = {v: k for k, v in self.tokenizer.get_vocab().items()}
+
+    def encode(self, text) -> torch.Tensor:
+        text = self.normalize_text(text)
+        try:
+            return torch.Tensor(self.tokenizer.encode(text).ids).unsqueeze(0)
+        except KeyError as e:
+            raise Exception(f"Can't encode text '{text}'.")
+
+    @classmethod
+    def from_file(cls, file):
+        raise NotImplementedError()

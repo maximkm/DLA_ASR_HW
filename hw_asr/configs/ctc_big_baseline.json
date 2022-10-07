@@ -13,14 +13,30 @@
   },
   "augmentations": {
     "wave": [],
-    "spectrogram": []
+    "spectrogram": [
+      {
+        "type": "FrequencyMasking",
+        "args": {}
+      },
+      {
+        "type": "TimeMasking",
+        "args": {}
+      }
+    ]
   },
   "arch": {
     "type": "CTCTransformerEncoder",
     "args": {
       "n_feats": 80,
+      "enc_output_dim": 1024,
       "vggblock_config": "[(64, 3, 2, 2), (128, 3, 2, 2)]",
-      "transformer_config": "[(512, 8, 2048, 0.15)] * 12"
+      "transformer_config": "[(512, 8, 1024, 0.15)] * 4"
+    }
+  },
+  "text_encoder": {
+    "type": "BPETextEncoder",
+    "args": {
+      "file_tokenizer": "hw_asr/text_encoder/BPE_tokenizer_500.json"
     }
   },
   "data": {
@@ -84,7 +100,7 @@
   "optimizer": {
     "type": "Adam",
     "args": {
-      "lr": 1e-2
+      "lr": 1e-4
     }
   },
   "loss": {
@@ -111,14 +127,16 @@
     "type": "OneCycleLR",
     "args": {
       "steps_per_epoch": 5000,
-      "epochs": 100,
+      "epochs": 10,
       "anneal_strategy": "cos",
-      "max_lr": 1e-2,
-      "pct_start": 0.2
+      "max_lr": 5e-3,
+      "pct_start": 0.0001,
+      "div_factor": 5,
+      "final_div_factor": 7
     }
   },
   "trainer": {
-    "epochs": 100,
+    "epochs": 10,
     "save_dir": "saved/",
     "save_period": 5,
     "verbosity": 2,

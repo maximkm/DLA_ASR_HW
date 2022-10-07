@@ -4,6 +4,8 @@ tensorboard
 matplotlib
 pandas
 
+transformers[torch]
+tokenizers
 speechbrain
 datasets
 torch_audiomentations

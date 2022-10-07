@@ -13,7 +13,16 @@
   },
   "augmentations": {
     "wave": [],
-    "spectrogram": []
+    "spectrogram": [
+      {
+        "type": "FrequencyMasking",
+        "args": {}
+      },
+      {
+        "type": "TimeMasking",
+        "args": {}
+      }
+    ]
   },
   "arch": {
     "type": "CTCTransformerEncoder",
@@ -21,6 +30,12 @@
       "n_feats": 80,
       "vggblock_config": "[(32, 3, 2, 2)] * 2",
       "transformer_config": "[(256, 4, 1024, 0.2)] * 2"
+    }
+  },
+  "text_encoder": {
+    "type": "BPETextEncoder",
+    "args": {
+      "file_tokenizer": "hw_asr/text_encoder/BPE_tokenizer_500.json"
     }
   },
   "data": {
