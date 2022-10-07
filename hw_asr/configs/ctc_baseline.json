@@ -16,10 +16,11 @@
     "spectrogram": []
   },
   "arch": {
-    "type": "BaselineModel",
+    "type": "CTCTransformerEncoder",
     "args": {
       "n_feats": 80,
-      "fc_hidden": 1024
+      "vggblock_config": "[(32, 3, 2, 2)] * 2",
+      "transformer_config": "[(256, 4, 1024, 0.2)] * 2"
     }
   },
   "data": {
@@ -88,7 +89,9 @@
   },
   "loss": {
     "type": "CTCLoss",
-    "args": {}
+    "args": {
+      "zero_infinity": true
+    }
   },
   "metrics": [
     {
