@@ -129,15 +129,15 @@ class CTCTransformerEncoder(BaseModel):
         spectrogram = spectrogram.transpose(1, 2).contiguous()  # (B, T, C * feat)
 
         bsz, max_spec_len, _ = spectrogram.size()
-        x = spectrogram.view(bsz, max_spec_len, self.in_channels, self.n_feats)
-        x = x.transpose(1, 2).contiguous()  # (B, C, T, feat)
+        spectrogram = spectrogram.view(bsz, max_spec_len, self.in_channels, self.n_feats)
+        spectrogram = spectrogram.transpose(1, 2).contiguous()  # (B, C, T, feat)
 
         for layer in self.conv_layers:
-            x = layer(x)
+            spectrogram = layer(spectrogram)
 
-        bsz, _, output_spec_len, _ = x.size()
-        x = x.transpose(1, 2).transpose(0, 1)
-        x = x.contiguous().view(output_spec_len, bsz, -1)  # (T, B, C * feat)
+        bsz, _, output_spec_len, _ = spectrogram.size()
+        spectrogram = spectrogram.transpose(1, 2).transpose(0, 1)
+        spectrogram = spectrogram.contiguous().view(output_spec_len, bsz, -1)  # (T, B, C * feat)
 
         lengths = spectrogram_length.clone()
         for s in self.pool_kernel_sizes:
@@ -149,15 +149,15 @@ class CTCTransformerEncoder(BaseModel):
 
         for transformer_layer in self.transformer_layers:
             if isinstance(transformer_layer, nn.TransformerEncoderLayer):
-                x = transformer_layer(x, None, key_padding_mask)
+                spectrogram = transformer_layer(spectrogram, None, key_padding_mask)
             else:
-                x = transformer_layer(x)
+                spectrogram = transformer_layer(spectrogram)
 
-        x = x.transpose(0, 1)
-        x = self.classifier(x)
+        spectrogram = spectrogram.transpose(0, 1)
+        spectrogram = self.classifier(spectrogram)
 
         return {
-            "logits": x,  # (B, T, C)
+            "logits": spectrogram,  # (B, T, C)
         }
 
     def transform_input_lengths(self, input_lengths):
