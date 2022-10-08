@@ -68,7 +68,6 @@ class CTCCharTextEncoder(CharTextEncoder):
 class BPETextEncoder(CTCCharTextEncoder):
     def __init__(self, alphabet: List[str] = None, file_tokenizer=''):
         super().__init__(alphabet)
-        vocab = [self.EMPTY_TOK] + list(self.alphabet)
         tokenizer = Tokenizer(BPE())
         self.tokenizer = tokenizer.from_file('hw_asr/text_encoder/BPE_tokenizer_500.json')
         self.tokenizer.add_tokens([' ', self.EMPTY_TOK])

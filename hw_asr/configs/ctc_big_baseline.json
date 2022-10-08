@@ -30,7 +30,7 @@
       "n_feats": 80,
       "enc_output_dim": 1024,
       "vggblock_config": "[(64, 3, 2, 2), (128, 3, 2, 2)]",
-      "transformer_config": "[(256, 8, 2048, 0.15)] * 4"
+      "transformer_config": "[(512, 8, 2048, 0.15)] * 4"
     }
   },
   "text_encoder": {
@@ -41,13 +41,29 @@
   },
   "data": {
     "train": {
-      "batch_size": 50,
+      "batch_size": 100,
       "num_workers": 5,
       "datasets": [
         {
           "type": "LibrispeechDataset",
           "args": {
             "part": "train-clean-100",
+            "max_audio_length": 20.0,
+            "max_text_length": 200
+          }
+        },
+        {
+          "type": "LibrispeechDataset",
+          "args": {
+            "part": "train-clean-360",
+            "max_audio_length": 20.0,
+            "max_text_length": 200
+          }
+        },
+        {
+          "type": "LibrispeechDataset",
+          "args": {
+            "part": "train-other-500",
             "max_audio_length": 20.0,
             "max_text_length": 200
           }
