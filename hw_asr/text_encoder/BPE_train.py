@@ -6,7 +6,7 @@ from tokenizers.pre_tokenizers import Whitespace
 from string import ascii_lowercase
 from json import load
 
-VOCAB_SIZE = 500
+VOCAB_SIZE = 256
 
 tokenizer = Tokenizer(BPE())
 trainer = BpeTrainer(vocab_size=VOCAB_SIZE, initial_alphabet=list(ascii_lowercase))

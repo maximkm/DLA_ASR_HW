@@ -27,12 +27,12 @@
   "text_encoder": {
     "type": "BPETextEncoder",
     "args": {
-      "file_tokenizer": "hw_asr/text_encoder/BPE_tokenizer_500.json"
+      "file_tokenizer": "hw_asr/text_encoder/BPE_tokenizer_50.json"
     }
   },
   "data": {
     "train": {
-      "batch_size": 1,
+      "batch_size": 10,
       "num_workers": 0,
       "datasets": [
         {
@@ -41,7 +41,7 @@
             "part": "dev-clean",
             "max_audio_length": 20.0,
             "max_text_length": 200,
-            "limit": 10000
+            "limit": 10
           }
         }
       ]

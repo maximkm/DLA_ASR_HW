@@ -21,6 +21,8 @@ class ArgmaxWERMetric(BaseMetric):
             target_text = BaseTextEncoder.normalize_text(target_text)
             if hasattr(self.text_encoder, "ctc_decode"):
                 pred_text = self.text_encoder.ctc_decode(log_prob_vec[:length])
+                # opt_beam_size = max(min(100_000 // log_prob[:length].numel(), 100), 1)
+                # pred_text = self.text_encoder.ctc_beam_search(torch.exp(log_prob), length, opt_beam_size)[0].text
             else:
                 pred_text = self.text_encoder.decode(log_prob_vec[:length])
             wers.append(calc_wer(target_text, pred_text))

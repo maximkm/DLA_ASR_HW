@@ -47,16 +47,16 @@ class CTCCharTextEncoder(CharTextEncoder):
         assert voc_size == len(self.ind2char)
 
         cur_hypos = {BeamHypothesis('', 0): 1.}
-        for i in range(char_length):
+        for i in range(probs_length):
             # extend and merge
             next_hypos = defaultdict(float)
             for hyp, prob in cur_hypos.items():
                 last_char = self.ind2char[hyp.last_ind] if hyp.last_ind != 0 else ''
                 for j in range(voc_size):
                     if j == hyp.last_ind:
-                        next_hypos[hyp] += prob * probs[j]
+                        next_hypos[hyp] += prob * probs[i][j]
                     else:
-                        next_hypos[BeamHypothesis(hyp.text + last_char, j)] += prob * probs[j]
+                        next_hypos[BeamHypothesis(hyp.text + last_char, j)] += prob * probs[i][j]
 
             # cut beams
             cur_hypos = dict(sorted(next_hypos.items(), key=lambda x: x[1], reverse=True)[:beam_size])

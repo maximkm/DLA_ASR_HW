@@ -30,13 +30,13 @@
       "n_feats": 80,
       "enc_output_dim": 1024,
       "vggblock_config": "[(64, 3, 2, 2), (128, 3, 2, 2)]",
-      "transformer_config": "[(512, 8, 2048, 0.15)] * 4"
+      "transformer_config": "[(256, 8, 2048, 0.15)] * 4"
     }
   },
   "text_encoder": {
     "type": "BPETextEncoder",
     "args": {
-      "file_tokenizer": "hw_asr/text_encoder/BPE_tokenizer_500.json"
+      "file_tokenizer": "hw_asr/text_encoder/BPE_tokenizer_256.json"
     }
   },
   "data": {
@@ -56,6 +56,14 @@
           "type": "LibrispeechDataset",
           "args": {
             "part": "train-clean-360",
+            "max_audio_length": 20.0,
+            "max_text_length": 200
+          }
+        },
+        {
+          "type": "LibrispeechDataset",
+          "args": {
+            "part": "train-clean-500",
             "max_audio_length": 20.0,
             "max_text_length": 200
           }
@@ -143,14 +151,15 @@
     "type": "OneCycleLR",
     "args": {
       "steps_per_epoch": 5000,
-      "epochs": 10,
+      "epochs": 20,
       "anneal_strategy": "cos",
-      "max_lr": 1e-2,
-      "pct_start": 0.2
+      "max_lr": 7e-3,
+      "pct_start": 0.2,
+      "div_factor": 17.5
     }
   },
   "trainer": {
-    "epochs": 10,
+    "epochs": 20,
     "save_dir": "saved/",
     "save_period": 5,
     "verbosity": 2,
