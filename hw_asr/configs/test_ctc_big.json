@@ -13,16 +13,7 @@
   },
   "augmentations": {
     "wave": [],
-    "spectrogram": [
-      {
-        "type": "FrequencyMasking",
-        "args": {}
-      },
-      {
-        "type": "TimeMasking",
-        "args": {}
-      }
-    ]
+    "spectrogram": []
   },
   "arch": {
     "type": "CTCTransformerEncoder",
@@ -40,58 +31,6 @@
     }
   },
   "data": {
-    "train": {
-      "batch_size": 50,
-      "num_workers": 8,
-      "datasets": [
-        {
-          "type": "LibrispeechDataset",
-          "args": {
-            "part": "train-clean-100",
-            "max_audio_length": 20.0,
-            "max_text_length": 200
-          }
-        },
-        {
-          "type": "LibrispeechDataset",
-          "args": {
-            "part": "train-clean-360",
-            "max_audio_length": 20.0,
-            "max_text_length": 200
-          }
-        },
-        {
-          "type": "LibrispeechDataset",
-          "args": {
-            "part": "train-clean-500",
-            "max_audio_length": 20.0,
-            "max_text_length": 200
-          }
-        },
-        {
-          "type": "LibrispeechDataset",
-          "args": {
-            "part": "train-other-500",
-            "max_audio_length": 20.0,
-            "max_text_length": 200
-          }
-        }
-      ]
-    },
-    "val": {
-      "batch_size": 50,
-      "num_workers": 5,
-      "datasets": [
-        {
-          "type": "LibrispeechDataset",
-          "args": {
-            "part": "dev-clean",
-            "max_audio_length": 20.0,
-            "max_text_length": 200
-          }
-        }
-      ]
-    },
     "test-other": {
       "batch_size": 50,
       "num_workers": 5,
@@ -106,7 +45,7 @@
         }
       ]
     },
-    "test-clean": {
+    "test": {
       "batch_size": 50,
       "num_workers": 5,
       "datasets": [
@@ -115,7 +54,8 @@
           "args": {
             "part": "test-clean",
             "max_audio_length": 20.0,
-            "max_text_length": 200
+            "max_text_length": 200,
+            "limit": 60
           }
         }
       ]
@@ -151,7 +91,7 @@
     "type": "OneCycleLR",
     "args": {
       "steps_per_epoch": 5000,
-      "epochs": 15,
+      "epochs": 20,
       "anneal_strategy": "cos",
       "max_lr": 7e-3,
       "pct_start": 0.2,
@@ -159,7 +99,7 @@
     }
   },
   "trainer": {
-    "epochs": 15,
+    "epochs": 20,
     "save_dir": "saved/",
     "save_period": 5,
     "verbosity": 2,

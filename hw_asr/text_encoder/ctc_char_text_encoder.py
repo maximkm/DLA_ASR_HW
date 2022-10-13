@@ -2,9 +2,7 @@ from tokenizers import Tokenizer
 from tokenizers.models import BPE
 from typing import List, NamedTuple
 from collections import defaultdict
-from pathlib import Path
 import torch
-import json
 
 from .char_text_encoder import CharTextEncoder
 
@@ -69,9 +67,8 @@ class BPETextEncoder(CTCCharTextEncoder):
     def __init__(self, alphabet: List[str] = None, file_tokenizer=''):
         super().__init__(alphabet)
         tokenizer = Tokenizer(BPE())
-        self.tokenizer = tokenizer.from_file('hw_asr/text_encoder/BPE_tokenizer_500.json')
-        self.tokenizer.add_tokens([' ', self.EMPTY_TOK])
-
+        self.tokenizer = tokenizer.from_file(file_tokenizer)
+        self.tokenizer.add_tokens([' '])
         self.ind2char = {v: k for k, v in self.tokenizer.get_vocab().items()}
 
     def encode(self, text) -> torch.Tensor:
@@ -80,6 +77,10 @@ class BPETextEncoder(CTCCharTextEncoder):
             return torch.Tensor(self.tokenizer.encode(text).ids).unsqueeze(0)
         except KeyError as e:
             raise Exception(f"Can't encode text '{text}'.")
+
+    def get_vocab(self):
+        return list(map(lambda x: x[0] if x[0] != self.EMPTY_TOK else "",
+                        sorted(self.tokenizer.get_vocab().items(), key=lambda x: x[1])))
 
     @classmethod
     def from_file(cls, file):

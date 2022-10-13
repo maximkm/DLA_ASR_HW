@@ -4,12 +4,12 @@ from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from tokenizers.pre_tokenizers import Whitespace
 from string import ascii_lowercase
-from json import load
+from json import load, dump
 
-VOCAB_SIZE = 256
+VOCAB_SIZE = 50
 
 tokenizer = Tokenizer(BPE())
-trainer = BpeTrainer(vocab_size=VOCAB_SIZE, initial_alphabet=list(ascii_lowercase))
+trainer = BpeTrainer(vocab_size=VOCAB_SIZE, initial_alphabet=['^'] + list(ascii_lowercase))
 
 with open('data/datasets/librispeech/train-clean-100_index.json', 'r') as dataset:
     data = load(dataset)
@@ -20,5 +20,5 @@ for row in data:
 
 tokenizer.pre_tokenizer = Whitespace()
 tokenizer.train_from_iterator(texts, trainer)
-tokenizer.save(f'hw_asr/text_encoder/BPE_tokenizer_{VOCAB_SIZE}.json')
-print('tokenizer save')
+tokenizer.save(f'hw_asr/text_encoder/BPE_configs/BPE_tokenizer_{VOCAB_SIZE}.json')
+print(f'tokenizer hw_asr/text_encoder/BPE_configs/BPE_tokenizer_{VOCAB_SIZE}.json save')

@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 import torch
+import numpy as np
 from tqdm import tqdm
 
 import hw_asr.model as module_model
@@ -11,6 +12,10 @@ from hw_asr.trainer import Trainer
 from hw_asr.utils import ROOT_PATH
 from hw_asr.utils.object_loading import get_dataloaders
 from hw_asr.utils.parse_config import ConfigParser
+from joblib import Parallel, delayed
+from pyctcdecode import build_ctcdecoder
+from timeit import default_timer as timer
+import multiprocessing
 
 DEFAULT_CHECKPOINT_PATH = ROOT_PATH / "default_test_model" / "checkpoint.pth"
 
@@ -32,7 +37,13 @@ def main(config, out_file):
     logger.info(model)
 
     logger.info("Loading checkpoint: {} ...".format(config.resume))
-    checkpoint = torch.load(config.resume, map_location=device)
+    try:
+        checkpoint = torch.load(config.resume, map_location=device)
+    except:
+        import pathlib
+
+        pathlib.PosixPath = pathlib.WindowsPath
+        checkpoint = torch.load(config.resume, map_location=device)
     state_dict = checkpoint["state_dict"]
     if config["n_gpu"] > 1:
         model = torch.nn.DataParallel(model)
@@ -43,7 +54,7 @@ def main(config, out_file):
     model.eval()
 
     results = []
-
+    ctc_decoder = build_ctcdecoder(text_encoder.get_vocab(), kenlm_model_path='5gram_.arpa')
     with torch.no_grad():
         for batch_num, batch in enumerate(tqdm(dataloaders["test"])):
             batch = Trainer.move_batch_to_device(batch, device)
@@ -58,18 +69,26 @@ def main(config, out_file):
             )
             batch["probs"] = batch["log_probs"].exp().cpu()
             batch["argmax"] = batch["probs"].argmax(-1)
+
+            start = timer()
+            logits_list = []
+            for i in range(len(batch["text"])):
+                logits_list.append(batch["log_probs"][i][:batch["log_probs_length"][i]].cpu().numpy())
+            with multiprocessing.get_context("fork").Pool() as pool:
+                text_list = ctc_decoder.decode_batch(pool, logits_list, token_min_logp=-10)
+
             for i in range(len(batch["text"])):
                 argmax = batch["argmax"][i]
                 argmax = argmax[: int(batch["log_probs_length"][i])]
-                results.append(
-                    {
-                        "ground_trurh": batch["text"][i],
-                        "pred_text_argmax": text_encoder.ctc_decode(argmax.cpu().numpy()),
-                        "pred_text_beam_search": text_encoder.ctc_beam_search(
-                            batch["probs"][i], batch["log_probs_length"][i], beam_size=100
-                        )[:10],
-                    }
-                )
+                results.append({
+                    "ground_trurh": batch["text"][i],
+                    "pred_text_argmax": text_encoder.ctc_decode(argmax.cpu().numpy()),
+                    #                     "pred_text_beam_search": [hyp.text for hyp in text_encoder.ctc_beam_search(
+                    #                         batch["probs"][i], batch["log_probs_length"][i], beam_size=3
+                    #                     )[:10]],
+                    "pred_text_beam_search": text_list[i],
+                })
+            print(timer() - start)
     with Path(out_file).open("w") as f:
         json.dump(results, f, indent=2)
 
