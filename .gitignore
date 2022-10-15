@@ -110,3 +110,4 @@ wandb/
 .vscode/
 .idea/
 __MACOSX/
+*.arpa

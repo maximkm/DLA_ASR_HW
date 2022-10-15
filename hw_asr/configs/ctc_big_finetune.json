@@ -13,7 +13,16 @@
   },
   "augmentations": {
     "wave": [],
-    "spectrogram": []
+    "spectrogram": [
+      {
+        "type": "FrequencyMasking",
+        "args": {}
+      },
+      {
+        "type": "TimeMasking",
+        "args": {}
+      }
+    ]
   },
   "arch": {
     "type": "CTCTransformerEncoder",
@@ -27,10 +36,62 @@
   "text_encoder": {
     "type": "BPETextEncoder",
     "args": {
-      "file_tokenizer": "hw_asr/text_encoder/BPE_configs/BPE_tokenizer_256.json"
+      "file_tokenizer": "hw_asr/text_encoder/BPE_configs/BPE_tokenizer_500.json"
     }
   },
   "data": {
+    "train": {
+      "batch_size": 50,
+      "num_workers": 8,
+      "datasets": [
+        {
+          "type": "LibrispeechDataset",
+          "args": {
+            "part": "train-clean-100",
+            "max_audio_length": 20.0,
+            "max_text_length": 200
+          }
+        },
+        {
+          "type": "LibrispeechDataset",
+          "args": {
+            "part": "train-clean-360",
+            "max_audio_length": 20.0,
+            "max_text_length": 200
+          }
+        },
+        {
+          "type": "LibrispeechDataset",
+          "args": {
+            "part": "train-other-500",
+            "max_audio_length": 20.0,
+            "max_text_length": 200
+          }
+        },
+        {
+          "type": "CommonVoiceDataset",
+          "args": {
+            "split": "train",
+            "max_audio_length": 20.0,
+            "max_text_length": 200
+          }
+        }
+      ]
+    },
+    "val": {
+      "batch_size": 50,
+      "num_workers": 5,
+      "datasets": [
+        {
+          "type": "LibrispeechDataset",
+          "args": {
+            "part": "dev-clean",
+            "max_audio_length": 20.0,
+            "max_text_length": 200
+          }
+        }
+      ]
+    },
     "test-other": {
       "batch_size": 50,
       "num_workers": 5,
@@ -45,7 +106,7 @@
         }
       ]
     },
-    "test": {
+    "test-clean": {
       "batch_size": 50,
       "num_workers": 5,
       "datasets": [
@@ -54,8 +115,7 @@
           "args": {
             "part": "test-clean",
             "max_audio_length": 20.0,
-            "max_text_length": 200,
-            "limit": 60
+            "max_text_length": 200
           }
         }
       ]
@@ -91,15 +151,15 @@
     "type": "OneCycleLR",
     "args": {
       "steps_per_epoch": 5000,
-      "epochs": 20,
+      "epochs": 8,
       "anneal_strategy": "cos",
-      "max_lr": 7e-3,
+      "max_lr": 2e-3,
       "pct_start": 0.2,
-      "div_factor": 17.5
+      "div_factor": 20
     }
   },
   "trainer": {
-    "epochs": 20,
+    "epochs": 21,
     "save_dir": "saved/",
     "save_period": 5,
     "verbosity": 2,

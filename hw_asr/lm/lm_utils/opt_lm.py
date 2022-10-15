@@ -12,13 +12,44 @@ from hw_asr.trainer import Trainer
 from hw_asr.utils import ROOT_PATH
 from hw_asr.utils.object_loading import get_dataloaders
 from hw_asr.utils.parse_config import ConfigParser
+from hw_asr.metric.utils import calc_wer, calc_cer
 from joblib import Parallel, delayed
 from pyctcdecode import build_ctcdecoder
 from timeit import default_timer as timer
 import multiprocessing
+import optuna
 
 DEFAULT_CHECKPOINT_PATH = ROOT_PATH / "default_test_model" / "checkpoint.pth"
 
+
+def calc_wer_batch(texts, preds):
+    wer = 0
+    for text, pred in zip(texts, preds):
+        wer += calc_wer(text, pred)
+    return wer / len(texts)
+    
+def calc_cer_batch(texts, preds):
+    cer = 0
+    for text, pred in zip(texts, preds):
+        cer += calc_cer(text, pred)
+    return cer / len(texts)
+
+def train_beam_search(texts, logits_list, text_encoder):
+    def optuna_trial(trial):
+        ctc_decoder = build_ctcdecoder(text_encoder.get_vocab(),
+                                       kenlm_model_path='5_full_gram.arpa',
+                                       alpha=trial.suggest_float('alpha', 0.55, 0.8),
+                                       beta=trial.suggest_float('beta', 0.15, 0.4))
+        with multiprocessing.get_context("fork").Pool() as pool:
+            pred_list = ctc_decoder.decode_batch(
+                pool,
+                logits_list,
+                beam_prune_logp=trial.suggest_float('beam_prune_logp', -10, -2),
+                token_min_logp=trial.suggest_float('token_min_logp', -10, -2),
+                beam_width=trial.suggest_int('beam_width', 500, 1500))
+        return calc_wer_batch(texts, pred_list)
+    return optuna_trial
+    
 
 def main(config, out_file):
     logger = config.get_logger("test")
@@ -53,15 +84,13 @@ def main(config, out_file):
     model = model.to(device)
     model.eval()
 
-    results = []
-    ctc_decoder = build_ctcdecoder(
-        text_encoder.get_vocab(),
-        kenlm_model_path='5_full_gram.arpa',
-        alpha=0.7086854,
-        beta=0.267707,
-    )
+    texts = []
+    pred_text_argmax = []
+    logits_list = []
+    ctc_decoder = build_ctcdecoder(text_encoder.get_vocab(), kenlm_model_path='5_full_gram.arpa')
+    start = timer()
     with torch.no_grad():
-        for batch_num, batch in enumerate(tqdm(dataloaders["test"])):
+        for batch_num, batch in enumerate(tqdm(dataloaders["val"])):
             batch = Trainer.move_batch_to_device(batch, device)
             output = model(**batch)
             if type(output) is dict:
@@ -75,22 +104,20 @@ def main(config, out_file):
             batch["probs"] = batch["log_probs"].exp().cpu()
             batch["argmax"] = batch["probs"].argmax(-1)
             
-            logits_list = []
-            for i in range(len(batch["text"])):
-                logits_list.append(batch["log_probs"][i][:batch["log_probs_length"][i]].cpu().numpy())
-            with multiprocessing.get_context("fork").Pool() as pool:
-                text_list = ctc_decoder.decode_batch(pool, logits_list, token_min_logp=-7, beam_width=1500, beam_prune_logp=-10)
-                
             for i in range(len(batch["text"])):
                 argmax = batch["argmax"][i]
                 argmax = argmax[: int(batch["log_probs_length"][i])]
-                results.append({
-                    "ground_trurh": batch["text"][i],
-                    "pred_text_argmax": text_encoder.ctc_decode(argmax.cpu().numpy()),
-                    "pred_text_beam_search": text_list[i],
-                })
-    with Path(out_file).open("w") as f:
-        json.dump(results, f, indent=2)
+                texts.append(text_encoder.normalize_text(batch["text"][i]))
+                pred_text_argmax.append(text_encoder.ctc_decode(argmax.cpu().numpy()))
+                logits_list.append(batch["log_probs"][i][:batch["log_probs_length"][i]].cpu().numpy())
+    print(f'calc batches {timer() - start}')
+    
+    start = timer()
+    study_beam_search = optuna.create_study(direction='minimize')
+    study_beam_search.optimize(train_beam_search(texts, logits_list, text_encoder), n_trials=30)
+    print('study', timer() - start)
+    print(f'Best params {study_beam_search.best_params}')
+    print(f'Result {study_beam_search.best_value}')
 
 
 if __name__ == "__main__":
@@ -184,8 +211,8 @@ if __name__ == "__main__":
             }
         }
 
-    assert config.config.get("data", {}).get("test", None) is not None
-    config["data"]["test"]["batch_size"] = args.batch_size
-    config["data"]["test"]["n_jobs"] = args.jobs
+    assert config.config.get("data", {}).get("val", None) is not None
+    config["data"]["val"]["batch_size"] = args.batch_size
+    config["data"]["val"]["n_jobs"] = args.jobs
 
     main(config, args.output)
