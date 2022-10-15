@@ -1,11 +1,14 @@
 # ASR project
+The project is made for educational purposes, as the homework of the course [deep learning for audio processing](https://github.com/markovka17/dla).
 
 ## Installation guide
+It is recommended to use python 3.8 or 3.9
 
-< Write your installation guide here >
-
+You need to clone the repository and install the libraries:
 ```shell
-pip install -r ./requirements.txt
+git clone https://github.com/maximkm/DLA_ASR_HW.git
+cd DLA_ASR_HW
+pip install -r requirements.txt
 ```
 
 ## Description of the work done
@@ -23,6 +26,8 @@ pip install -r ./requirements.txt
 - [x] Write an implementation of the Common Voice dataset and write a config for the finetune model
 - [ ] Finetune model on Common Voice
 
+[Wandb report](https://wandb.ai/maximkm/asr_project/reports/Homework-report--VmlldzoyNzk4OTIw?accessToken=68k3szx6w2gvylj2b0vnid1c9lx628q0v0b770rkglmyw5m61qgnanoc4auhemdt)
+
 ## The final score received
 
 | Dataset | Type predict | CER  | WER |
@@ -35,8 +40,16 @@ pip install -r ./requirements.txt
 ## Independent code testing
 
 You need to download:
-1) The final checkpoint of the model and put the save folder in the main directory
-2) LM and place the file in the hw_asr/lm directory
+1) [The final checkpoint](https://drive.google.com/uc?id=10Ubmu6-w415A2jiUXobJL4ZzMy7A5fxW) of the model and put the save folder in the main directory
+2) [LM](https://drive.google.com/uc?id=1WGFJgzrh850BSXkaCb-dzsWqK894Dmd0) and place the file in the hw_asr/lm directory
+
+You can run this script:
+```shell
+gdown https://drive.google.com/uc?id=10Ubmu6-w415A2jiUXobJL4ZzMy7A5fxW
+unzip saved.zip
+gdown https://drive.google.com/uc?id=1WGFJgzrh850BSXkaCb-dzsWqK894Dmd0
+mv 5_full_gram.arpa hw_asr/lm
+```
 
 Now you can run the code:
 1) You need to run the model with the following command:
@@ -49,7 +62,7 @@ After processing all the data will save the predictions in `test-clean.json`.
 
 Similarly, the **`test_ctc_big_other.json`** config was created. Also at test.py there is a `-t` argument to specify a folder with a dataset.
 
-2) The last step is to run a script to calculate the WAR and CER metrics
+2) The last step is to run a script to calculate the WER and CER metrics
 ```bash
 python calc_wer_cer.py -t test-clean.json
 ```
