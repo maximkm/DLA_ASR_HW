@@ -20,4 +20,4 @@ pillow
 
 kenlm @ https://github.com/kpu/kenlm/archive/master.zip
 optuna==3.0.3
-
+gdown
