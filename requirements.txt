@@ -1,15 +1,23 @@
-numpy
+numpy==1.19.4
 tqdm
 tensorboard
 matplotlib
 pandas
 
+torch==1.12.1+cu116
+torchaudio==0.12.1+cu116
+torchvision==0.13.1+cu116
+
 transformers[torch]
-tokenizers
-speechbrain
-datasets
+tokenizers==0.10.3
+speechbrain==0.5.13
+datasets==2.6.1
 torch_audiomentations
-editdistance
-wandb
-pyctcdecode
+editdistance==0.6.0
+wandb==0.13.4
+pyctcdecode==0.4.0
 pillow
+
+kenlm @ https://github.com/kpu/kenlm/archive/master.zip
+optuna==3.0.3
+

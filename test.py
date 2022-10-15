@@ -56,7 +56,7 @@ def main(config, out_file):
     results = []
     ctc_decoder = build_ctcdecoder(
         text_encoder.get_vocab(),
-        kenlm_model_path='5_full_gram.arpa',
+        kenlm_model_path='hw_asr/lm/5_full_gram.arpa',
         alpha=0.7086854,
         beta=0.267707,
     )
