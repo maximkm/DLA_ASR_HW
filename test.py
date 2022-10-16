@@ -85,7 +85,7 @@ def main(config, out_file):
                 argmax = batch["argmax"][i]
                 argmax = argmax[: int(batch["log_probs_length"][i])]
                 results.append({
-                    "ground_trurh": batch["text"][i],
+                    "ground_trurh": text_encoder.normalize_text(batch["text"][i]),
                     "pred_text_argmax": text_encoder.ctc_decode(argmax.cpu().numpy()),
                     "pred_text_beam_search": text_list[i],
                 })
