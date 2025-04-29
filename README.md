@@ -40,14 +40,14 @@ pip install -r requirements.txt
 ## Independent code testing
 
 You need to download:
-1) [The final checkpoint](https://drive.google.com/uc?id=10Ubmu6-w415A2jiUXobJL4ZzMy7A5fxW) of the model and put the save folder in the main directory
-2) [LM](https://drive.google.com/uc?id=1WGFJgzrh850BSXkaCb-dzsWqK894Dmd0) and place the file in the hw_asr/lm directory
+1) [The final checkpoint](https://huggingface.co/WideMax/DLA_ASR/blob/main/5_full_gram.arpa) of the model and put the save folder in the main directory
+2) [LM](https://huggingface.co/WideMax/DLA_ASR/blob/main/saved.zip) and place the file in the hw_asr/lm directory
 
 You can run this script:
 ```shell
-gdown https://drive.google.com/uc?id=10Ubmu6-w415A2jiUXobJL4ZzMy7A5fxW
+wget https://huggingface.co/WideMax/DLA_ASR/resolve/main/saved.zip
 unzip saved.zip
-gdown https://drive.google.com/uc?id=1WGFJgzrh850BSXkaCb-dzsWqK894Dmd0
+wget https://huggingface.co/WideMax/DLA_ASR/resolve/main/5_full_gram.arpa
 mv 5_full_gram.arpa hw_asr/lm
 ```
 
